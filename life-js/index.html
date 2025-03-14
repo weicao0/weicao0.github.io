@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game of Life</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src='jquery-3.6.3.min.js' type='text/javascript'></script>
+    <script src="game.js" type="text/javascript"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="toolbar">
+            <div id="buttons">
+                <div class="button" style="font-size: 20pt" id="btn_run" title="Start">▶</div>
+                <div class="button" style="font-size: 16pt" id="btn_pause" title="Pause">||</div>
+                <div class="button" style="font-size: 24pt" id="btn_reset" title="Restart">↺</div>
+                <div class="button" style="font-size: 20pt" id="btn_clear" title="Clear">◯</div>
+                <div class="button" style="font-size: 24pt" id="btn_random" title="Random">⚂</div>
+            </div>
+            <div id="menus">
+                <div class="dropdown">
+                    <span class="dropdown-header">Presets</span>
+                    <div class="dropdown-content" id="preset-content">
+                        <p class="dropdown-item presets" id="preset-spinners">Spinners</p>
+                        <p class="dropdown-item presets" id="preset-spaceship">Spaceship</p>
+                        <p class="dropdown-item presets" id="preset-gosper">Gosper Glider Gun</p>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <span class="dropdown-header">Grid</span>
+                    <div class="dropdown-content" id="preset-content">
+                        <p class="dropdown-item grids selected" id="grid-50x30">50x30</p>
+                        <p class="dropdown-item grids" id="grid-100x50">100x50</p>
+                        <p class="dropdown-item grids" id="grid-25x10">25x10</p>
+                    </div>
+                </div>
+            </div>
+            <div id="status">
+                <div class="stat" id="stepcounter">Step: 0</div>
+                <div class="stat" id="xyloc">&nbsp</div>
+            </div>
+        </div>
+        <div id="grid"></div>
+        <div id="footer"><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game of Life</a> 
+            &nbsp | &nbsp by <a href="https://github.com/stmorse">Steve Morse</a> &nbsp | &nbsp &copy; 2024</div>
+    </div>
+</body>
+</html>

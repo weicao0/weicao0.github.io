@@ -1,0 +1,149 @@
+:root {
+    --gridwidth: 20;
+    --gridheight: 10;
+    --cellsize: 50px;
+}
+
+* {
+    font-family: 'Lucida Console', monospace;
+}
+
+#container {
+    /* margin: 0 auto;  */
+    text-align: center;
+    margin: 0 auto;
+}
+
+#toolbar {
+    width: calc(var(--gridwidth) * var(--cellsize));
+    text-align: center;
+    font-size: 11pt;
+    padding: 5px 5px; /* L/R T/B */
+    margin: 5px auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+}
+
+#footer {
+    width: calc(var(--gridwidth * var(--cellsize)));
+    text-align: center;
+    font-size: 11pt;
+    padding: 5px 5px;
+    margin: 5px auto;
+}
+
+
+/* BUTTON STUFF */
+
+#buttons {
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.button {
+    width: 50px;
+    height: 20px;  /* make vertically centered */
+    line-height: 20px;
+    text-align: center;
+    margin: 2px;
+    padding: 2px;
+    /* border: 1px solid black; */
+    /* border-radius: 10px; */
+}
+
+
+/* DROPDOWN STUFF */
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    margin: 2px;
+    padding: 2px;
+}
+
+.dropdown-header:after {
+    content: " ▼";
+}
+
+.dropdown-content {
+    text-align: left;
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 100px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 5px 5px;
+    z-index: 999;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: lightblue;
+}
+
+.selected:after {
+    content: " ✓";
+}
+
+
+/* STATUS STUFF */
+
+#status {
+    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 0.5px solid lightgray;
+    background-color: rgba(200,200,200,0.2);
+}
+
+.stat {
+    text-align: center;
+    margin: 2px;
+    padding: 2px;
+}
+
+
+
+/* GRID STUFF */
+
+#grid {
+    text-align: center;
+    font-size: medium;
+    /* margin: 5px auto; */
+    display: grid;
+    grid-template-rows: repeat(var(--gridheight), var(--cellsize));
+    grid-template-columns: repeat(var(--gridwidth), var(--cellsize));
+    justify-content: center; /* centers cells in grid div */
+}
+
+.cell {
+    background-color: white;
+    position: relative;
+    border: 0.5px solid lightgray;
+    width: calc(var(--cellsize) - 1);
+    height: calc(var(--cellsize) - 1);
+    z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cell:hover {
+        box-shadow: 0 0 2px 2px black;
+        z-index: 2;
+    }  
+
+    .button:hover {
+        /* background-color: lightblue; */
+        color: lightblue;
+        transition: 0.5s;
+    }
+}
+
+.active {
+    background-color: blue;
+}
