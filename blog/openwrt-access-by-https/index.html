@@ -1,0 +1,433 @@
+<!doctype html><html lang=zh-CN data-theme=light><head><meta charset=UTF-8><meta name=viewport content="width=device-width"><meta name=theme-color content="#222" media="(prefers-color-scheme: light)"><meta name=generator content="Hugo 0.141.0"><link rel="shortcut icon" type=image/x-icon href=/imgs/icons/favicon.ico><link rel=icon type=image/x-icon href=/imgs/icons/favicon.ico><link rel=icon type=image/png sizes=16x16 href=/imgs/icons/favicon_16x16.png><link rel=icon type=image/png sizes=32x32 href=/imgs/icons/favicon_32_32.png><link rel=apple-touch-icon sizes=180x180 href=/imgs/icons/apple-touch-icon.png><meta itemprop=name content="Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问"><meta itemprop=description content="To Figure Out How Stuff Works."><meta name=description content="To Figure Out How Stuff Works."><meta itemprop=datePublished zgotmplz><meta itemprop=dateModified zgotmplz><meta itemprop=image content="/imgs/my_avatar.jpg"><meta itemprop=keywords content="Openwrt,Nginx,Https"><meta property="og:type" content="article"><meta property="og:title" content="Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问"><meta property="og:description" content="To Figure Out How Stuff Works."><meta property="og:image" content="/imgs/my_avatar.jpg"><meta property="og:image:width" content="312"><meta property="og:image:height" content="312"><meta property="og:image:type" content="image/jpeg/png/svg/jpg"><meta property="og:url" content="/blog/openwrt-access-by-https/"><meta property="og:site_name" content="心有所住"><meta property="og:locale" content="zh-CN"><meta property="article:author" content="Don't Panic"><meta property="article:published_time" content="2025-04-11 03:27:20 +0800 +0800"><meta property="article:modified_time" content="2025-04-16 02:33:01 +0800 +0800"><link type=text/css rel=stylesheet href=/js/3rd/font-awesome/6.7.2/css/all.min.css><link type=text/css rel=stylesheet href=/js/3rd/animate.css/3.1.1/animate.min.css><link type=text/css rel=stylesheet href=/js/3rd/viewerjs/1.11.6/viewer.min.css><link rel=stylesheet href="/css/main.min.css?=1744854007"><style type=text/css>.post-footer hr:after{content:"~ 我可是有底线的哟 ~"}.flinks-list-footer hr:after{content:"~ 我可是有底线的哟 ~"}</style><script type=text/javascript>(function(){localDB={set:function(e,t,n){if(n===0)return;const s=new Date,o=n*864e5,i={value:t,expiry:s.getTime()+o};localStorage.setItem(e,JSON.stringify(i))},get:function(e){const t=localStorage.getItem(e);if(!t)return void 0;const n=JSON.parse(t),s=new Date;return s.getTime()>n.expiry?(localStorage.removeItem(e),void 0):n.value}},theme={active:function(){const e=localDB.get("theme");if(e==null)return;theme.toggle(e),window.matchMedia("(prefers-color-scheme: dark)").addListener(function(e){theme.toggle(e.matches?"dark":"light")})},toggle:function(e){document.documentElement.setAttribute("data-theme",e),localDB.set("theme",e,2);const t=document.querySelector("iframe.giscus-frame");if(t){const n={setConfig:{theme:e}};t.contentWindow.postMessage({giscus:n},"https://giscus.app")}}},theme.active()})(window)</script><script type=text/javascript>document.addEventListener("DOMContentLoaded",()=>{var e=document.createElement("script");e.charset="UTF-8",e.src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js",e.async=!1,e.defer=!0,document.head.appendChild(e),e.onload=function(){NexT.utils.fmtBusuanzi()}})</script><title>Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问 - 心有所住</title><noscript><link rel=stylesheet href=/css/noscript.css></noscript></head><body itemscope itemtype=http://schema.org/WebPage class=use-motion><div class=headband></div><main class=main><header class=header itemscope itemtype=http://schema.org/WPHeader><div class=header-inner><div class=site-brand-container><div class=site-nav-toggle><div class=toggle aria-label role=button><span class=toggle-line></span>
+<span class=toggle-line></span>
+<span class=toggle-line></span></div></div><div class=site-meta><a href=/ class=brand rel=start><i class=logo-line></i><h1 class=site-title>心有所住</h1><i class=logo-line></i></a><p class=site-subtitle itemprop=description>Don't Wish It Was Easier. Wish You Were Better.</p></div><div class=site-nav-right><div class="toggle popup-trigger"><i class="fa fa-search fa-fw fa-lg"></i></div></div></div><nav class=site-nav><ul class="main-menu menu"><li class="menu-item menu-item-home"><a href=/ class=hvr-icon-pulse rel=section><i class="fa fa-home hvr-icon"></i>首页</a></li><li class="menu-item menu-item-about"><a href=/about.html class=hvr-icon-pulse rel=section><i class="fa fa-user hvr-icon"></i>关于</a></li><li class="menu-item menu-item-categories"><a href=/categories/ class=hvr-icon-pulse rel=section><i class="fa fa-th hvr-icon"></i>分类</a></li><li class="menu-item menu-item-tags"><a href=/tags/ class=hvr-icon-pulse rel=section><i class="fa fa-tags hvr-icon"></i>标签</a></li><li class="menu-item menu-item-archives"><a href=/archives/ class=hvr-icon-pulse rel=section><i class="fa fa-archive hvr-icon"></i>归档
+<span class=badge>3</span></a></li><li class="menu-item menu-item-commonweal"><a href=/404.html class=hvr-icon-pulse rel=section><i class="fa fa-heartbeat hvr-icon"></i>公益 404</a></li><li class="menu-item menu-item-search"><a role=button class="popup-trigger hvr-icon-pulse"><i class="fa fa-search fa-fw hvr-icon"></i>搜索</a></li></ul></nav><div class=search-pop-overlay><div class="popup search-popup"><div class=search-header><span class=search-icon><i class="fa fa-search"></i></span><div class=search-input-container><input autocomplete=off autocapitalize=off maxlength=80 placeholder=搜索... spellcheck=false type=search class=search-input></div><span class=popup-btn-close role=button><i class="fa fa-times-circle"></i></span></div><div class="search-result-container no-result"><div class=search-result-icon><i class="fa fa-spinner fa-pulse fa-5x"></i></div></div></div></div></div><div class="toggle sidebar-toggle" role=button><span class=toggle-line></span>
+<span class=toggle-line></span>
+<span class=toggle-line></span></div><aside class=sidebar><div class="sidebar-inner sidebar-nav-active sidebar-toc-active"><ul class=sidebar-nav><li class=sidebar-nav-toc>文章目录</li><li class=sidebar-nav-overview>站点概览</li></ul><div class=sidebar-panel-container><div class="post-toc-wrap sidebar-panel"><div class="post-toc animated"><nav id=TableOfContents><ul><li><a href=#准备工作>准备工作</a></li><li><a href=#配置步骤>配置步骤</a></li><li><a href=#原理分析>原理分析</a></li><li><a href=#技术细节>技术细节</a><ul><li><a href=#nginx的功能和配置介绍>Nginx的功能和配置介绍</a></li><li><a href=#openwrt的nginx配置文件的结构>Openwrt的Nginx配置文件的结构</a></li></ul></li></ul></nav></div></div><div class="site-overview-wrap sidebar-panel"><div class="site-author site-overview-item animated" itemprop=author itemscope itemtype=http://schema.org/Person><img class=site-author-image itemprop=image alt="Don't Panic" src=/imgs/img-lazy-loading.gif data-src=/imgs/my_avatar.jpg><p class=site-author-name itemprop=name>Don't Panic</p><div class=site-description itemprop=description>To Figure Out How Stuff Works.</div></div><div class="site-state-wrap site-overview-item animated"><nav class=site-state><div class="site-state-item site-state-posts"><a href=/archives/><span class=site-state-item-count>3</span>
+<span class=site-state-item-name>日志</span></a></div><div class="site-state-item site-state-categories"><a href=/categories/><span class=site-state-item-count>1</span>
+<span class=site-state-item-name>分类</span></a></div><div class="site-state-item site-state-tags"><a href=/tags/><span class=site-state-item-count>6</span>
+<span class=site-state-item-name>标签</span></a></div></nav></div><div class="links-of-social site-overview-item animated"><span class=links-of-social-item><a href=https://github.com/weicao0 title="Github → https://github.com/weicao0" rel=noopener class=hvr-icon-pulse target=_blank><i class="fab fa-github fa-fw hvr-icon"></i>
+Github</a></span></div><div class="links-of-blogroll site-overview-item animated"><div class=links-of-blogroll-title><i class="fa fa-link fa-fw"></i>
+Links</div><ul class=links-of-blogroll-list><li class=links-of-blogroll-item><a href=https://dccxi.com/trust/ title=https://dccxi.com/trust/ target=_blank>信任的进化</a></li><li class=links-of-blogroll-item><a href=/linux-c-book title=/linux-c-book target=_blank>Linux C编程一站式学习</a></li><li class=links-of-blogroll-item><a href=/life-js title=/life-js target=_blank>生命游戏</a></li></ul></div></div></div></div></aside><div class=sidebar-dimmer></div></header><div class=tool-buttons><div id=goto-comments class="button goto-comments" title=直达评论><i class="fas fa-comments"></i></div><div id=toggle-theme class=button title=深浅模式切换><i class="fas fa-adjust"></i></div><div class=back-to-top role=button title=返回顶部><i class="fa fa-arrow-up"></i>
+<span>0%</span></div></div><div class=reading-progress-bar></div><script type=text/javascript src=//sidecar.gitter.im/dist/sidecar.v1.js async></script><script type=text/javascript>((window.gitter={}).chat={}).options={room:"hugo-next/community"}</script><noscript><div class=noscript-warning>Theme NexT works best with JavaScript enabled</div></noscript><div class="main-inner post posts-expand"><div class=post-block><article itemscope itemtype=http://schema.org/Article class=post-content lang><link itemprop=mainEntityOfPage href=/blog/openwrt-access-by-https/><span hidden itemprop=author itemscope itemtype=http://schema.org/Person><meta itemprop=image content="/imgs/my_avatar.jpg"><meta itemprop=name content="Don't Panic"></span><span hidden itemprop=publisher itemscope itemtype=http://schema.org/Organization><meta itemprop=name content="Don't Panic"><meta itemprop=description content="To Figure Out How Stuff Works."></span><span hidden itemprop=post itemscope itemtype=http://schema.org/CreativeWork><meta itemprop=name content="Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问"><meta itemprop=description content="在文章
+
+    Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问
+    
+    
+    
+的最后章节，提到当内网部署了多个http服务时，通过不同域名+固定端口进行访问会更加方便易用。同时在提供外部访问时，如果可以将本地 HTTP 服务自动转换为 HTTPS 服务，也可以大幅改善内网服务的安全性。
+这两个需求可以用Nginx反向代理来实现。"></span><header class=post-header><h1 class=post-title itemprop="name headline">Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问</h1><div class=post-meta-container><div class=post-meta-items><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-calendar"></i>
+</span><span class=post-meta-item-text title=发表于>发表于：
+</span><time title="创建时间：2025-04-11 03:27:20 +08:00" itemprop="dateCreated datePublished" datetime="2025-04-11 03:27:20 +0800 +0800">2025-04-11
+</time></span><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-calendar-check"></i>
+</span><span class=post-meta-item-text title=更新于>更新于：
+</span><time title="修改时间：2025-04-16 02:33:01 +08:00" itemprop="dateModified dateLastmod" datetime="2025-04-16 02:33:01 +0800 +0800">2025-04-16
+</time></span><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-folder-open"></i>
+</span><span class=post-meta-item-text title=分类于>分类于：
+</span><span itemprop=about itemscope itemtype=http://schema.org/Thing><a href=/categories/%E6%8A%80%E6%9C%AF/ itemprop=url rel=index><span itemprop=name>技术</span></a></span></span></div><div class=post-meta-items><span class=post-meta-item title=字数><span class=post-meta-item-icon><i class="fas fa-solid fa-file-word"></i>
+</span><span class=post-meta-item-text>字数：</span>
+<span>4412</span>
+</span><span class=post-meta-item title=阅读><span class=post-meta-item-icon><i class="fas fa-solid fa-clock"></i>
+</span><span class=post-meta-item-text>阅读：&ap;</span>
+<span>9分钟</span>
+</span><span class=post-meta-item title=浏览><span class=post-meta-item-icon><i class="fas fa-solid fa-eye"></i>
+</span><span class=post-meta-item-text>浏览：
+</span><span id=busuanzi_value_page_pv data-path=/blog/openwrt-access-by-https/><i class="fa fa-sync fa-spin"></i>
+</span></span><span class=post-meta-item title><span class=post-meta-item-icon><i class="fas fa-solid fa-comments"></i>
+</span><span class=post-meta-item-text title=评论>评论：
+</span><span id=comments-count class=waline-comment-count data-path=/blog/openwrt-access-by-https/><i class="fa fa-sync fa-spin"></i></span></span></div></div></header><div class="post-body autonumber" itemprop=articleBody><p>在文章
+<a href=https://weicao0.github.io/Openwrt-Access-By-IPv6/ title=Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问 rel="noopener external nofollow noreferrer" target=_blank class=exturl>Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问
+<i class="fa fa-external-link-alt"></i>
+</a>的最后章节，提到当内网部署了多个http服务时，通过不同域名+固定端口进行访问会更加方便易用。同时在提供外部访问时，如果可以将本地 HTTP 服务自动转换为 HTTPS 服务，也可以大幅改善内网服务的安全性。
+这两个需求可以用Nginx反向代理来实现。</p><a id=more></a><p>Openwrt使用Nginx有两种方式：</p><ol><li>通过docker部署Nginx Proxy Manager来进行可视化操作，这种方式最为简便。如果家里路由的性能不太够，又或者路由芯片没有相应的docker镜像，这种方式就不太适用。</li><li>Openwrt直接使用Nginx替代默认的uhttpd来作为Web服务器。这种方式需要一些配置，Openwrt上也没有好用的Nginx管理界面，所以需要一些命令行操作。但在灵活性和性能上会更有优势。
+方式1网上的教程较多，可以参见
+<a href=https://post.smzdm.com/p/a30qv00r/ title="NAS必备神器：部署中文版反向代理工具『Nginx Proxy Manager』并申请 SSL 证书" rel="noopener external nofollow noreferrer" target=_blank class=exturl>NAS必备神器：部署中文版反向代理工具『Nginx Proxy Manager』并申请 SSL 证书
+<i class="fa fa-external-link-alt"></i>
+</a>。
+这里我们按照方式2的思路操作一遍，顺带熟悉一下Nginx的使用。</li></ol><h2 id=准备工作>准备工作
+<a class=header-anchor href=#%e5%87%86%e5%a4%87%e5%b7%a5%e4%bd%9c></a></h2><ol><li>Openwrt中安装acme-acmesh-dnsapi、luci-app-acme、luci-ssl-nginx这几个软件包。</li><li>准备好Cloudflare的区域ID和API令牌。</li></ol><h2 id=配置步骤>配置步骤
+<a class=header-anchor href=#%e9%85%8d%e7%bd%ae%e6%ad%a5%e9%aa%a4></a></h2><p>一、申请自己域名的ssl证书</p><ol><li><p>打开Openwrt管理界面，到ACME证书界面添加真实的电子邮件账户，在证书配置处输入证书名称并点击添加。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/b1jntmcq.yf5.png alt=assets/b1jntmcq.yf5.png></p></li><li><p>编辑刚刚新增的证书配置。选中【已启用】，添加自己要申请的【域名】。这里因为ACME支持泛域名申请，我们可以写上比如<code>*.example.com</code>这样的域名申请信息。当然申请<code>*.test.example.com</code>这样的三级域名也是可以的，但Cloudflare默认提供的免费证书只支持根域名<code>example.com</code>以及二级泛域名<code>*.example.com</code>，三级及以上的域名会报证书错误。所以我们这里其实没有必要申请多级域名的证书。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/v0vlcppt.rgu.png alt=assets/v0vlcppt.rgu.png>
+在【质询验证】选项里选择【验证方式】为DNS，【DNS_API】填入dns_cf，DNS API 为域名解析商，具体的值可以在 
+<a href=https://github.com/acmesh-official/acme.sh/wiki/dnsapi title=https://github.com/acmesh-official/acme.sh/wiki/dnsapi rel="noopener external nofollow noreferrer" target=_blank class=exturl>https://github.com/acmesh-official/acme.sh/wiki/dnsapi
+<i class="fa fa-external-link-alt"></i>
+</a>查询。
+DNS_API凭证填入：</p></li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-0-1><a class=lnlinks href=#hl-0-1>1</a>
+</span><span class=lnt id=hl-0-2><a class=lnlinks href=#hl-0-2>2</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=k>export</span> <span class=n>CF_Token</span><span class=o>=</span><span class=s2>&#34;xxxx&#34;</span>
+</span></span><span class=line><span class=cl><span class=k>export</span> <span class=n>CF_Zone_ID</span><span class=o>=</span><span class=s2>&#34;xxxx&#34;</span></span></span></code></pre></td></tr></table></div></div><p>这里的CF_Token对应你的API令牌，CF_Zone_ID对应区域ID。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/hareo54c.5ux.png alt=assets/hareo54c.5ux.png>
+3. 完成后，点击【保存并应用】，等一会在命令行界面<code>ls /etc/acme/*</code> 查看证书是否申请完成。如果可以看到<code>/etc/acme/*.example.com/fullchain.cer</code>证书文件则证书申请完成。有时因为各种原因证书申请不成功，此时执行<code>/etc/init.d/acme restart</code>就可以重新申请 ，并查看申请流程的日志。
+4. 对于申请完成的证书，需要记录<code>/etc/acme/*.example.com/fullchain.cer</code>和<code>/etc/acme/*.example.com/xxx.key</code>这两个完整的路径。</p><p>二、配置Nginx服务
+luci-ssl-nginx软件包安装后，会自动将Openwrt的Web服务器从uhttpd替换成nginx。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/mqcvttot.lnq.png alt=assets/mqcvttot.lnq.png>
+这时候如果你直接局域网访问Openwrt的管理界面，大概率会被重定向到https，且浏览器提示不安全。这是因为未配置ssl证书时，nginx用的是<code>/etc/nginx/conf.d/_lan.crt</code>和<code>/etc/nginx/conf.d/_lan.key</code>这样的自签证书，会被浏览器认为不安全。出现这样的提示，你多半感觉麻烦，首先我们先把这个问题解决掉。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/4kgmr244.pbt.png alt=assets/4kgmr244.pbt.png></p><ol><li>修改Openwrt管理界面的服务配置
+在命令行里<code>vi /etc/config/nginx</code>修改配置，这里我们首先把80端口的302重定向配置注释掉，再增加两行规则。这一步完成后，我们就可以仍然使用http访问后台管理界面，而不是被强制重定向到https。</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-1-1><a class=lnlinks href=#hl-1-1>1</a>
+</span><span class=lnt id=hl-1-2><a class=lnlinks href=#hl-1-2>2</a>
+</span><span class=lnt id=hl-1-3><a class=lnlinks href=#hl-1-3>3</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>#option return &#39;302 https://$host$request_uri&#39;
+</span></span><span class=line><span class=cl>list include &#39;restrict_locally&#39;
+</span></span><span class=line><span class=cl>list include &#39;conf.d/*.locations&#39;</span></span></code></pre></td></tr></table></div></div><p>接着，我们新增一个10443的https监听端口用于公网的https访问，保留了443使用自签证书的端口。其实就是把443的配置复制下来，改个名称和证书路径。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-2-1><a class=lnlinks href=#hl-2-1> 1</a>
+</span><span class=lnt id=hl-2-2><a class=lnlinks href=#hl-2-2> 2</a>
+</span><span class=lnt id=hl-2-3><a class=lnlinks href=#hl-2-3> 3</a>
+</span><span class=lnt id=hl-2-4><a class=lnlinks href=#hl-2-4> 4</a>
+</span><span class=lnt id=hl-2-5><a class=lnlinks href=#hl-2-5> 5</a>
+</span><span class=lnt id=hl-2-6><a class=lnlinks href=#hl-2-6> 6</a>
+</span><span class=lnt id=hl-2-7><a class=lnlinks href=#hl-2-7> 7</a>
+</span><span class=lnt id=hl-2-8><a class=lnlinks href=#hl-2-8> 8</a>
+</span><span class=lnt id=hl-2-9><a class=lnlinks href=#hl-2-9> 9</a>
+</span><span class=lnt id=hl-2-10><a class=lnlinks href=#hl-2-10>10</a>
+</span><span class=lnt id=hl-2-11><a class=lnlinks href=#hl-2-11>11</a>
+</span><span class=lnt id=hl-2-12><a class=lnlinks href=#hl-2-12>12</a>
+</span><span class=lnt id=hl-2-13><a class=lnlinks href=#hl-2-13>13</a>
+</span><span class=lnt id=hl-2-14><a class=lnlinks href=#hl-2-14>14</a>
+</span><span class=lnt id=hl-2-15><a class=lnlinks href=#hl-2-15>15</a>
+</span><span class=lnt id=hl-2-16><a class=lnlinks href=#hl-2-16>16</a>
+</span><span class=lnt id=hl-2-17><a class=lnlinks href=#hl-2-17>17</a>
+</span><span class=lnt id=hl-2-18><a class=lnlinks href=#hl-2-18>18</a>
+</span><span class=lnt id=hl-2-19><a class=lnlinks href=#hl-2-19>19</a>
+</span><span class=lnt id=hl-2-20><a class=lnlinks href=#hl-2-20>20</a>
+</span><span class=lnt id=hl-2-21><a class=lnlinks href=#hl-2-21>21</a>
+</span><span class=lnt id=hl-2-22><a class=lnlinks href=#hl-2-22>22</a>
+</span><span class=lnt id=hl-2-23><a class=lnlinks href=#hl-2-23>23</a>
+</span><span class=lnt id=hl-2-24><a class=lnlinks href=#hl-2-24>24</a>
+</span><span class=lnt id=hl-2-25><a class=lnlinks href=#hl-2-25>25</a>
+</span><span class=lnt id=hl-2-26><a class=lnlinks href=#hl-2-26>26</a>
+</span><span class=lnt id=hl-2-27><a class=lnlinks href=#hl-2-27>27</a>
+</span><span class=lnt id=hl-2-28><a class=lnlinks href=#hl-2-28>28</a>
+</span><span class=lnt id=hl-2-29><a class=lnlinks href=#hl-2-29>29</a>
+</span><span class=lnt id=hl-2-30><a class=lnlinks href=#hl-2-30>30</a>
+</span><span class=lnt id=hl-2-31><a class=lnlinks href=#hl-2-31>31</a>
+</span><span class=lnt id=hl-2-32><a class=lnlinks href=#hl-2-32>32</a>
+</span><span class=lnt id=hl-2-33><a class=lnlinks href=#hl-2-33>33</a>
+</span><span class=lnt id=hl-2-34><a class=lnlinks href=#hl-2-34>34</a>
+</span><span class=lnt id=hl-2-35><a class=lnlinks href=#hl-2-35>35</a>
+</span><span class=lnt id=hl-2-36><a class=lnlinks href=#hl-2-36>36</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>config main global
+</span></span><span class=line><span class=cl>        option uci_enable &#39;true&#39;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>config server &#39;_lan&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;443 ssl default_server&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;[::]:443 ssl default_server&#39;
+</span></span><span class=line><span class=cl>        option server_name &#39;_lan&#39;
+</span></span><span class=line><span class=cl>        list include &#39;restrict_locally&#39;
+</span></span><span class=line><span class=cl>        list include &#39;conf.d/*.locations&#39;
+</span></span><span class=line><span class=cl>        option uci_manage_ssl &#39;self-signed&#39;
+</span></span><span class=line><span class=cl>        option ssl_certificate &#39;/etc/nginx/conf.d/_lan.crt&#39;
+</span></span><span class=line><span class=cl>        option ssl_certificate_key &#39;/etc/nginx/conf.d/_lan.key&#39;
+</span></span><span class=line><span class=cl>        option ssl_session_cache &#39;shared:SSL:32k&#39;
+</span></span><span class=line><span class=cl>        option ssl_session_timeout &#39;64m&#39;
+</span></span><span class=line><span class=cl>        option access_log &#39;off; # logd openwrt&#39;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>config server &#39;_lan2&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;10443 ssl default_server&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;[::]:10443 ssl default_server&#39;
+</span></span><span class=line><span class=cl>        option server_name &#39;_lan2&#39;
+</span></span><span class=line><span class=cl>        list include &#39;restrict_locally&#39;
+</span></span><span class=line><span class=cl>        list include &#39;conf.d/*.locations&#39;
+</span></span><span class=line><span class=cl>        option uci_manage_ssl &#39;acme&#39;
+</span></span><span class=line><span class=cl>        option ssl_certificate &#39;/etc/acme/*.example.com/fullchain.cer&#39;
+</span></span><span class=line><span class=cl>        option ssl_certificate_key &#39;/etc/acme/*.example.com/*.example.com.key&#39;
+</span></span><span class=line><span class=cl>        option ssl_session_cache &#39;shared:SSL2:32k&#39;
+</span></span><span class=line><span class=cl>        option ssl_session_timeout &#39;64m&#39;
+</span></span><span class=line><span class=cl>        option access_log &#39;off; # logd openwrt&#39;
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>config server &#39;_redirect2ssl&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;80&#39;
+</span></span><span class=line><span class=cl>        list listen &#39;[::]:80&#39;
+</span></span><span class=line><span class=cl>        option server_name &#39;_redirect2ssl&#39;
+</span></span><span class=line><span class=cl>        #option return &#39;302 https://$host$request_uri&#39;
+</span></span><span class=line><span class=cl>        list include &#39;restrict_locally&#39;
+</span></span><span class=line><span class=cl>        list include &#39;conf.d/*.locations&#39;</span></span></code></pre></td></tr></table></div></div><p>配置修改后，执行<code>/etc/init.d/nginx reload</code>重新加载配置。这时候访问https://192.168.50.1:10443/就不会出现不安全的提示了。
+2. 转发10443端口到Cloudflare支持转发的https端口
+直接使用socat进行配置。选择仅IPv6，并填入Cloudflare支持的监听端口，选中打开防火墙端口。
+<img src=/imgs/img-lazy-loading.gif data-src=../../../public/openwrt-access-by-ipv6/assets/fwlhmtui.jqv.png alt=../../../public/openwrt-access-by-ipv6/assets/fwlhmtui.jqv.png></p><p>如果这时Cloudflare的域名规则已经配置好（比如test.example.com），我们就可以通过访问https://test.example.com:2053/来访问到Openwrt的管理页面。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/eynz4p5g.emb.png alt=assets/eynz4p5g.emb.png></p><p>三、配置Nginx反向代理
+我们已经配置好nginx作为Openwrt的Web服务器，并且将路由器的管理页面配置成支持公网https访问。那么如果我在局域网里部署了一个http://192.168.50.8:5244的alist服务，又该如何配置支持公网https访问呢？会和路由器管理界面的配置一样吗？</p><ol><li>配置反向代理
+命令行执行<code>vi /etc/nginx/conf.d/alist.conf</code>，按照下面的内容填入配置规则。其中location规则参考的是
+<a href=https://alist.nn.ci/zh/guide/install/reverse-proxy.html#nginx title="反向代理 | AList文档" rel="noopener external nofollow noreferrer" target=_blank class=exturl>反向代理 | AList文档
+<i class="fa fa-external-link-alt"></i>
+</a>。
+这里注意下listen端口的配置，我们采用的刚刚配置的10443端口；server_name这里建议写上准确的域名，这样nginx在匹配到这个域名才会命中这个配置，否则会默认采用上面的default_server规则。</li></ol><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-3-1><a class=lnlinks href=#hl-3-1> 1</a>
+</span><span class=lnt id=hl-3-2><a class=lnlinks href=#hl-3-2> 2</a>
+</span><span class=lnt id=hl-3-3><a class=lnlinks href=#hl-3-3> 3</a>
+</span><span class=lnt id=hl-3-4><a class=lnlinks href=#hl-3-4> 4</a>
+</span><span class=lnt id=hl-3-5><a class=lnlinks href=#hl-3-5> 5</a>
+</span><span class=lnt id=hl-3-6><a class=lnlinks href=#hl-3-6> 6</a>
+</span><span class=lnt id=hl-3-7><a class=lnlinks href=#hl-3-7> 7</a>
+</span><span class=lnt id=hl-3-8><a class=lnlinks href=#hl-3-8> 8</a>
+</span><span class=lnt id=hl-3-9><a class=lnlinks href=#hl-3-9> 9</a>
+</span><span class=lnt id=hl-3-10><a class=lnlinks href=#hl-3-10>10</a>
+</span><span class=lnt id=hl-3-11><a class=lnlinks href=#hl-3-11>11</a>
+</span><span class=lnt id=hl-3-12><a class=lnlinks href=#hl-3-12>12</a>
+</span><span class=lnt id=hl-3-13><a class=lnlinks href=#hl-3-13>13</a>
+</span><span class=lnt id=hl-3-14><a class=lnlinks href=#hl-3-14>14</a>
+</span><span class=lnt id=hl-3-15><a class=lnlinks href=#hl-3-15>15</a>
+</span><span class=lnt id=hl-3-16><a class=lnlinks href=#hl-3-16>16</a>
+</span><span class=lnt id=hl-3-17><a class=lnlinks href=#hl-3-17>17</a>
+</span><span class=lnt id=hl-3-18><a class=lnlinks href=#hl-3-18>18</a>
+</span><span class=lnt id=hl-3-19><a class=lnlinks href=#hl-3-19>19</a>
+</span><span class=lnt id=hl-3-20><a class=lnlinks href=#hl-3-20>20</a>
+</span><span class=lnt id=hl-3-21><a class=lnlinks href=#hl-3-21>21</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=n>server</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=n>listen</span> <span class=mi>10443</span> <span class=n>ssl</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>server_name</span> <span class=n>alist</span><span class=o>.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>ssl_certificate</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>acme</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>/</span><span class=n>fullchain</span><span class=o>.</span><span class=n>cer</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>ssl_certificate_key</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>acme</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>.</span><span class=n>key</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>ssl_session_cache</span> <span class=n>shared</span><span class=p>:</span><span class=n>SSL2</span><span class=p>:</span><span class=mi>32</span><span class=n>k</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>ssl_session_timeout</span> <span class=mi>64</span><span class=n>m</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>location</span> <span class=o>/</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=n>X</span><span class=o>-</span><span class=n>Forwarded</span><span class=o>-</span><span class=n>For</span> <span class=o>$</span><span class=n>proxy_add_x_forwarded_for</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=n>X</span><span class=o>-</span><span class=n>Forwarded</span><span class=o>-</span><span class=n>Proto</span> <span class=o>$</span><span class=n>scheme</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=n>Host</span> <span class=o>$</span><span class=n>http_host</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=n>X</span><span class=o>-</span><span class=n>Real</span><span class=o>-</span><span class=ne>IP</span> <span class=o>$</span><span class=n>remote_addr</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=ne>Range</span> <span class=o>$</span><span class=n>http_range</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_set_header</span> <span class=n>If</span><span class=o>-</span><span class=ne>Range</span> <span class=o>$</span><span class=n>http_if_range</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_redirect</span> <span class=n>off</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>proxy_pass</span> <span class=n>http</span><span class=p>:</span><span class=o>//</span><span class=mf>192.168</span><span class=o>.</span><span class=mf>50.8</span><span class=p>:</span><span class=mi>5244</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=c1># the max size of file to upload</span>
+</span></span><span class=line><span class=cl>        <span class=n>client_max_body_size</span> <span class=mi>20000</span><span class=n>m</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>修改后执行<code>/etc/init.d/nginx reload</code>重新加载配置。
+2. Cloudflare新增域名解析
+到Cloudflare新增一个CNAME规则，别名指向Openwrt设备的ddns，打开小黄云。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/1osocrx5.1py.png alt=assets/1osocrx5.1py.png>
+3. 验证服务
+访问https://alist.example.com:2053/验证alist服务是否可达。
+<img src=/imgs/img-lazy-loading.gif data-src=assets/thymjd1z.lys.png alt=assets/thymjd1z.lys.png></p><h2 id=原理分析>原理分析
+<a class=header-anchor href=#%e5%8e%9f%e7%90%86%e5%88%86%e6%9e%90></a></h2><ol><li>配置nginx监听10443端口，并采用acme签发的ssl证书，以支持https访问。</li><li>将本地的10443端口转发至Cloudflare可转发的https端口，支持公网https访问。</li><li>使用nginx配置反向代理规则，将局域网服务都通过10443端口代理出去。通过server_name来匹配不同的服务域名，避免不同域名的匹配规则冲突。</li></ol><h2 id=技术细节>技术细节
+<a class=header-anchor href=#%e6%8a%80%e6%9c%af%e7%bb%86%e8%8a%82></a></h2><h3 id=nginx的功能和配置介绍>Nginx的功能和配置介绍
+<a class=header-anchor href=#nginx%e7%9a%84%e5%8a%9f%e8%83%bd%e5%92%8c%e9%85%8d%e7%bd%ae%e4%bb%8b%e7%bb%8d></a></h3><p>Nginx常用功能包括：</p><ol><li>反向代理</li><li>负载均衡</li><li>静态资源服务器</li><li>web缓存</li><li>客户端访问限制</li></ol><p>默认配置文件<code>nginx.conf</code>的基本框架：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-4-1><a class=lnlinks href=#hl-4-1> 1</a>
+</span><span class=lnt id=hl-4-2><a class=lnlinks href=#hl-4-2> 2</a>
+</span><span class=lnt id=hl-4-3><a class=lnlinks href=#hl-4-3> 3</a>
+</span><span class=lnt id=hl-4-4><a class=lnlinks href=#hl-4-4> 4</a>
+</span><span class=lnt id=hl-4-5><a class=lnlinks href=#hl-4-5> 5</a>
+</span><span class=lnt id=hl-4-6><a class=lnlinks href=#hl-4-6> 6</a>
+</span><span class=lnt id=hl-4-7><a class=lnlinks href=#hl-4-7> 7</a>
+</span><span class=lnt id=hl-4-8><a class=lnlinks href=#hl-4-8> 8</a>
+</span><span class=lnt id=hl-4-9><a class=lnlinks href=#hl-4-9> 9</a>
+</span><span class=lnt id=hl-4-10><a class=lnlinks href=#hl-4-10>10</a>
+</span><span class=lnt id=hl-4-11><a class=lnlinks href=#hl-4-11>11</a>
+</span><span class=lnt id=hl-4-12><a class=lnlinks href=#hl-4-12>12</a>
+</span><span class=lnt id=hl-4-13><a class=lnlinks href=#hl-4-13>13</a>
+</span><span class=lnt id=hl-4-14><a class=lnlinks href=#hl-4-14>14</a>
+</span><span class=lnt id=hl-4-15><a class=lnlinks href=#hl-4-15>15</a>
+</span><span class=lnt id=hl-4-16><a class=lnlinks href=#hl-4-16>16</a>
+</span><span class=lnt id=hl-4-17><a class=lnlinks href=#hl-4-17>17</a>
+</span><span class=lnt id=hl-4-18><a class=lnlinks href=#hl-4-18>18</a>
+</span><span class=lnt id=hl-4-19><a class=lnlinks href=#hl-4-19>19</a>
+</span><span class=lnt id=hl-4-20><a class=lnlinks href=#hl-4-20>20</a>
+</span><span class=lnt id=hl-4-21><a class=lnlinks href=#hl-4-21>21</a>
+</span><span class=lnt id=hl-4-22><a class=lnlinks href=#hl-4-22>22</a>
+</span><span class=lnt id=hl-4-23><a class=lnlinks href=#hl-4-23>23</a>
+</span><span class=lnt id=hl-4-24><a class=lnlinks href=#hl-4-24>24</a>
+</span><span class=lnt id=hl-4-25><a class=lnlinks href=#hl-4-25>25</a>
+</span><span class=lnt id=hl-4-26><a class=lnlinks href=#hl-4-26>26</a>
+</span><span class=lnt id=hl-4-27><a class=lnlinks href=#hl-4-27>27</a>
+</span><span class=lnt id=hl-4-28><a class=lnlinks href=#hl-4-28>28</a>
+</span><span class=lnt id=hl-4-29><a class=lnlinks href=#hl-4-29>29</a>
+</span><span class=lnt id=hl-4-30><a class=lnlinks href=#hl-4-30>30</a>
+</span><span class=lnt id=hl-4-31><a class=lnlinks href=#hl-4-31>31</a>
+</span><span class=lnt id=hl-4-32><a class=lnlinks href=#hl-4-32>32</a>
+</span><span class=lnt id=hl-4-33><a class=lnlinks href=#hl-4-33>33</a>
+</span><span class=lnt id=hl-4-34><a class=lnlinks href=#hl-4-34>34</a>
+</span><span class=lnt id=hl-4-35><a class=lnlinks href=#hl-4-35>35</a>
+</span><span class=lnt id=hl-4-36><a class=lnlinks href=#hl-4-36>36</a>
+</span><span class=lnt id=hl-4-37><a class=lnlinks href=#hl-4-37>37</a>
+</span><span class=lnt id=hl-4-38><a class=lnlinks href=#hl-4-38>38</a>
+</span><span class=lnt id=hl-4-39><a class=lnlinks href=#hl-4-39>39</a>
+</span><span class=lnt id=hl-4-40><a class=lnlinks href=#hl-4-40>40</a>
+</span><span class=lnt id=hl-4-41><a class=lnlinks href=#hl-4-41>41</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-NGINX data-lang=NGINX><span class=line><span class=cl><span class=c1>#user  nobody;
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>worker_processes</span>  <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#error_log  logs/error.log;
+</span></span></span><span class=line><span class=cl><span class=c1>#error_log  logs/error.log  notice;
+</span></span></span><span class=line><span class=cl><span class=c1>#error_log  logs/error.log  info;
+</span></span></span><span class=line><span class=cl><span class=c1></span>
+</span></span><span class=line><span class=cl><span class=c1>#pid        logs/nginx.pid;
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>events</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=k>http</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=kn>server</span> <span class=p>{</span>    <span class=c1># 不同server依照listen和server_name划分。
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=c1># 不指定listen端口，默认80
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kn>server_name</span> <span class=s>example.com</span> <span class=s>*.example.com</span> <span class=s>www.example.*</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=c1># 指定 server_name 注意顺序。首要放第一个
+</span></span></span><span class=line><span class=cl><span class=c1></span>        <span class=kn>location</span> <span class=s>/</span> <span class=p>{</span>  <span class=c1># 不同location依照URI地址划分。
+</span></span></span><span class=line><span class=cl><span class=c1></span>            <span class=kn>root</span> <span class=s>/data/www</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=kn>location</span> <span class=s>/img/</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kn>root</span> <span class=s>/data/images</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=kn>location</span> <span class=p>~</span> <span class=sr>\.(gif|jpg|png)$</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kn>root</span> <span class=s>/data/images</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=c1># 反向代理：
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=kn>server</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=kn>listen</span>    <span class=mi>8080</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=kn>location</span>  <span class=s>/</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=kn>proxy_pass</span> <span class=s>http://localhost:8080</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=c1># 为了防止空host或者无效host访问：
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=kn>server</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=kn>listen</span>       <span class=mi>80</span>  <span class=s>default_server</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=kn>server_name</span>  <span class=s>&#34;&#34;</span> <span class=s>_</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=kn>return</span>       <span class=mi>444</span><span class=p>;</span>   <span class=c1># 返回报错
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>配置文件大致可以分为几部分：</p><ol><li><strong>全局块</strong>：配置影响nginx全局的指令。一般有运行nginx服务器的用户组，nginx进程pid存放路径，日志存放路径，配置文件引入，允许生成worker process数等。</li><li><strong>events块</strong>：配置影响nginx服务器或与用户的网络连接。有每个进程的最大连接数，选取哪种事件驱动模型处理连接请求，是否允许同时接受多个网路连接，开启多个网络连接序列化等。</li><li><strong>http块</strong>：可以嵌套多个server，配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置。如文件引入，mime-type定义，日志自定义，是否使用sendfile传输文件，连接超时时间，单连接请求数等。</li><li><strong>server块</strong>：配置虚拟主机的相关参数，一个http中可以有多个server。</li><li><strong>location块</strong>：配置请求的路由，以及各种页面的处理情况。</li></ol><h3 id=openwrt的nginx配置文件的结构>Openwrt的Nginx配置文件的结构
+<a class=header-anchor href=#openwrt%e7%9a%84nginx%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6%e7%9a%84%e7%bb%93%e6%9e%84></a></h3><p>Openwrt的Nginx配置会多一些路径依赖，主要是需要融入<code>/etc/config/nginx</code>里面的标准配置。Openwrt启动后，<code>/etc/init.d/nginx</code> 将使用模板 <code>/etc/nginx/uci.conf.template</code> 在内存中自动生成配置文件<code>/etc/nginx/uci.conf</code> 。</p><ol><li>模板中的 <code>#UCI_HTTP_CONFIG</code> 根据 <code>/etc/config/nginx</code> UCI配置文件替换。</li><li>UCI默认配置的"_lan" server 中加载 <code>/etc/nginx/restrict_locally</code> 限制只允许从局域网访问。</li><li>UCI默认配置的"_lan" server 中加载 <code>/etc/nginx/conf.d/*.locations</code> ：加载到默认"_lan" server的{}内，建议存放各种自定义location。</li><li>最后加载 <code>/etc/nginx/conf.d/*.conf</code> ：加载到http的{}内，建议存放各种自定义server。<br><strong>注意：</strong> 不推荐直接修改 <code>uci.conf.template</code>，因为该文件会随着系统升级。<br><strong>注意：</strong> <code>*.locations</code>和<code>*.conf</code>文件设置如果和UCI设置冲突，将取代UCI设置。<br><strong>注意：</strong> 如果自定义 <code>/etc/nginx/nginx.conf</code> 文件作为主配置文件，屏蔽UCI配置文件：<code>uci set nginx.global.uci_enable=false</code>。不推荐。
+这里就可以回答上面提到的问题，配置Openwrt的路由管理界面的https访问和配置局域网服务的https访问是否有区别？</li></ol><ul><li>我们只需要打开<code>/etc/nginx/uci.conf</code>看下就理解了。在<code>/etc/config/nginx</code>中配置的信息被填充到http块的server规则里，在<code>/etc/nginx/conf.d/alist.conf</code>中配置的规则会被<code>include conf.d/*.conf</code>语句引入。所以这两个配置其实都是配置http块的server信息，只是配置路径有些不同。</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt id=hl-5-1><a class=lnlinks href=#hl-5-1> 1</a>
+</span><span class=lnt id=hl-5-2><a class=lnlinks href=#hl-5-2> 2</a>
+</span><span class=lnt id=hl-5-3><a class=lnlinks href=#hl-5-3> 3</a>
+</span><span class=lnt id=hl-5-4><a class=lnlinks href=#hl-5-4> 4</a>
+</span><span class=lnt id=hl-5-5><a class=lnlinks href=#hl-5-5> 5</a>
+</span><span class=lnt id=hl-5-6><a class=lnlinks href=#hl-5-6> 6</a>
+</span><span class=lnt id=hl-5-7><a class=lnlinks href=#hl-5-7> 7</a>
+</span><span class=lnt id=hl-5-8><a class=lnlinks href=#hl-5-8> 8</a>
+</span><span class=lnt id=hl-5-9><a class=lnlinks href=#hl-5-9> 9</a>
+</span><span class=lnt id=hl-5-10><a class=lnlinks href=#hl-5-10>10</a>
+</span><span class=lnt id=hl-5-11><a class=lnlinks href=#hl-5-11>11</a>
+</span><span class=lnt id=hl-5-12><a class=lnlinks href=#hl-5-12>12</a>
+</span><span class=lnt id=hl-5-13><a class=lnlinks href=#hl-5-13>13</a>
+</span><span class=lnt id=hl-5-14><a class=lnlinks href=#hl-5-14>14</a>
+</span><span class=lnt id=hl-5-15><a class=lnlinks href=#hl-5-15>15</a>
+</span><span class=lnt id=hl-5-16><a class=lnlinks href=#hl-5-16>16</a>
+</span><span class=lnt id=hl-5-17><a class=lnlinks href=#hl-5-17>17</a>
+</span><span class=lnt id=hl-5-18><a class=lnlinks href=#hl-5-18>18</a>
+</span><span class=lnt id=hl-5-19><a class=lnlinks href=#hl-5-19>19</a>
+</span><span class=lnt id=hl-5-20><a class=lnlinks href=#hl-5-20>20</a>
+</span><span class=lnt id=hl-5-21><a class=lnlinks href=#hl-5-21>21</a>
+</span><span class=lnt id=hl-5-22><a class=lnlinks href=#hl-5-22>22</a>
+</span><span class=lnt id=hl-5-23><a class=lnlinks href=#hl-5-23>23</a>
+</span><span class=lnt id=hl-5-24><a class=lnlinks href=#hl-5-24>24</a>
+</span><span class=lnt id=hl-5-25><a class=lnlinks href=#hl-5-25>25</a>
+</span><span class=lnt id=hl-5-26><a class=lnlinks href=#hl-5-26>26</a>
+</span><span class=lnt id=hl-5-27><a class=lnlinks href=#hl-5-27>27</a>
+</span><span class=lnt id=hl-5-28><a class=lnlinks href=#hl-5-28>28</a>
+</span><span class=lnt id=hl-5-29><a class=lnlinks href=#hl-5-29>29</a>
+</span><span class=lnt id=hl-5-30><a class=lnlinks href=#hl-5-30>30</a>
+</span><span class=lnt id=hl-5-31><a class=lnlinks href=#hl-5-31>31</a>
+</span><span class=lnt id=hl-5-32><a class=lnlinks href=#hl-5-32>32</a>
+</span><span class=lnt id=hl-5-33><a class=lnlinks href=#hl-5-33>33</a>
+</span><span class=lnt id=hl-5-34><a class=lnlinks href=#hl-5-34>34</a>
+</span><span class=lnt id=hl-5-35><a class=lnlinks href=#hl-5-35>35</a>
+</span><span class=lnt id=hl-5-36><a class=lnlinks href=#hl-5-36>36</a>
+</span><span class=lnt id=hl-5-37><a class=lnlinks href=#hl-5-37>37</a>
+</span><span class=lnt id=hl-5-38><a class=lnlinks href=#hl-5-38>38</a>
+</span><span class=lnt id=hl-5-39><a class=lnlinks href=#hl-5-39>39</a>
+</span><span class=lnt id=hl-5-40><a class=lnlinks href=#hl-5-40>40</a>
+</span><span class=lnt id=hl-5-41><a class=lnlinks href=#hl-5-41>41</a>
+</span><span class=lnt id=hl-5-42><a class=lnlinks href=#hl-5-42>42</a>
+</span><span class=lnt id=hl-5-43><a class=lnlinks href=#hl-5-43>43</a>
+</span><span class=lnt id=hl-5-44><a class=lnlinks href=#hl-5-44>44</a>
+</span><span class=lnt id=hl-5-45><a class=lnlinks href=#hl-5-45>45</a>
+</span><span class=lnt id=hl-5-46><a class=lnlinks href=#hl-5-46>46</a>
+</span><span class=lnt id=hl-5-47><a class=lnlinks href=#hl-5-47>47</a>
+</span><span class=lnt id=hl-5-48><a class=lnlinks href=#hl-5-48>48</a>
+</span><span class=lnt id=hl-5-49><a class=lnlinks href=#hl-5-49>49</a>
+</span><span class=lnt id=hl-5-50><a class=lnlinks href=#hl-5-50>50</a>
+</span><span class=lnt id=hl-5-51><a class=lnlinks href=#hl-5-51>51</a>
+</span><span class=lnt id=hl-5-52><a class=lnlinks href=#hl-5-52>52</a>
+</span><span class=lnt id=hl-5-53><a class=lnlinks href=#hl-5-53>53</a>
+</span><span class=lnt id=hl-5-54><a class=lnlinks href=#hl-5-54>54</a>
+</span><span class=lnt id=hl-5-55><a class=lnlinks href=#hl-5-55>55</a>
+</span><span class=lnt id=hl-5-56><a class=lnlinks href=#hl-5-56>56</a>
+</span><span class=lnt id=hl-5-57><a class=lnlinks href=#hl-5-57>57</a>
+</span><span class=lnt id=hl-5-58><a class=lnlinks href=#hl-5-58>58</a>
+</span><span class=lnt id=hl-5-59><a class=lnlinks href=#hl-5-59>59</a>
+</span><span class=lnt id=hl-5-60><a class=lnlinks href=#hl-5-60>60</a>
+</span><span class=lnt id=hl-5-61><a class=lnlinks href=#hl-5-61>61</a>
+</span><span class=lnt id=hl-5-62><a class=lnlinks href=#hl-5-62>62</a>
+</span><span class=lnt id=hl-5-63><a class=lnlinks href=#hl-5-63>63</a>
+</span><span class=lnt id=hl-5-64><a class=lnlinks href=#hl-5-64>64</a>
+</span><span class=lnt id=hl-5-65><a class=lnlinks href=#hl-5-65>65</a>
+</span><span class=lnt id=hl-5-66><a class=lnlinks href=#hl-5-66>66</a>
+</span><span class=lnt id=hl-5-67><a class=lnlinks href=#hl-5-67>67</a>
+</span><span class=lnt id=hl-5-68><a class=lnlinks href=#hl-5-68>68</a>
+</span><span class=lnt id=hl-5-69><a class=lnlinks href=#hl-5-69>69</a>
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-gdscript3 data-lang=gdscript3><span class=line><span class=cl><span class=c1># This file is re-created when Nginx starts.</span>
+</span></span><span class=line><span class=cl><span class=c1># Consider using UCI or creating files in /etc/nginx/conf.d/ for configuration.</span>
+</span></span><span class=line><span class=cl><span class=c1># Parsing UCI configuration is skipped if uci set nginx.global.uci_enable=false</span>
+</span></span><span class=line><span class=cl><span class=c1># For details see: https://openwrt.org/docs/guide-user/services/webserver/nginx</span>
+</span></span><span class=line><span class=cl><span class=c1># UCI_CONF_VERSION=1.2</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>worker_processes</span> <span class=n>auto</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>user</span> <span class=n>root</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>include</span> <span class=n>module</span><span class=o>.</span><span class=n>d</span><span class=o>/*.</span><span class=n>module</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>events</span> <span class=p>{}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>http</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=n>access_log</span> <span class=n>off</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>log_format</span> <span class=n>openwrt</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39;$request_method $scheme://$host$request_uri =&gt; $status&#39;</span>
+</span></span><span class=line><span class=cl>                <span class=s1>&#39; (${body_bytes_sent}B in ${request_time}s) &lt;- $http_referer&#39;</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>include</span> <span class=n>mime</span><span class=o>.</span><span class=n>types</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>default_type</span> <span class=n>application</span><span class=o>/</span><span class=n>octet</span><span class=o>-</span><span class=n>stream</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>sendfile</span> <span class=n>on</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>client_max_body_size</span> <span class=mi>128</span><span class=n>M</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>large_client_header_buffers</span> <span class=mi>2</span> <span class=mi>1</span><span class=n>k</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>gzip</span> <span class=n>on</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>gzip_vary</span> <span class=n>on</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=n>gzip_proxied</span> <span class=n>any</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>root</span> <span class=o>/</span><span class=n>www</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>server</span> <span class=p>{</span> <span class=c1>#see uci show &#39;nginx._lan&#39;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=mi>443</span> <span class=n>ssl</span> <span class=n>default_server</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=p>[::]:</span><span class=mi>443</span> <span class=n>ssl</span> <span class=n>default_server</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>server_name</span> <span class=n>_lan</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>restrict_locally</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/*.</span><span class=n>locations</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_certificate</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>nginx</span><span class=o>/</span><span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/</span><span class=n>_lan</span><span class=o>.</span><span class=n>crt</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_certificate_key</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>nginx</span><span class=o>/</span><span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/</span><span class=n>_lan</span><span class=o>.</span><span class=n>key</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_session_cache</span> <span class=n>shared</span><span class=p>:</span><span class=n>SSL</span><span class=p>:</span><span class=mi>32</span><span class=n>k</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_session_timeout</span> <span class=mi>64</span><span class=n>m</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>access_log</span> <span class=n>off</span><span class=p>;</span> <span class=c1># logd openwrt;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>server</span> <span class=p>{</span> <span class=c1>#see uci show &#39;nginx._lan2&#39;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=mi>10443</span> <span class=n>ssl</span> <span class=n>default_server</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=p>[::]:</span><span class=mi>10443</span> <span class=n>ssl</span> <span class=n>default_server</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>server_name</span> <span class=n>_lan2</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>restrict_locally</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/*.</span><span class=n>locations</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_certificate</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>acme</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>/</span><span class=n>fullchain</span><span class=o>.</span><span class=n>cer</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_certificate_key</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>acme</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>/*.</span><span class=n>example</span><span class=o>.</span><span class=n>com</span><span class=o>.</span><span class=n>key</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_session_cache</span> <span class=n>shared</span><span class=p>:</span><span class=n>SSL2</span><span class=p>:</span><span class=mi>32</span><span class=n>k</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>ssl_session_timeout</span> <span class=mi>64</span><span class=n>m</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>access_log</span> <span class=n>off</span><span class=p>;</span> <span class=c1># logd openwrt;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>server</span> <span class=p>{</span> <span class=c1>#see uci show &#39;nginx._redirect2ssl&#39;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=mi>80</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>listen</span> <span class=p>[::]:</span><span class=mi>80</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>server_name</span> <span class=n>_redirect2ssl</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>restrict_locally</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>include</span> <span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/*.</span><span class=n>locations</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=n>include</span> <span class=n>conf</span><span class=o>.</span><span class=n>d</span><span class=o>/*.</span><span class=n>conf</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div></div><footer class=post-footer><div class=post-tags><a href=/tags/openwrt/>Openwrt
+</a><a href=/tags/nginx/>Nginx
+</a><a href=/tags/https/>Https</a></div><div class=post-share-tools><div class=post-share-loading><i class="fa-solid fa-ellipsis fa-spin"></i></div><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class=a2a_dd href=https://www.addtoany.com/share></a><a class=a2a_button_wechat></a><a class=a2a_button_qzone></a><a class=a2a_button_sina_weibo></a><a class=a2a_button_douban></a><a class=a2a_button_facebook></a><a class=a2a_button_x></a><a class=a2a_button_email></a><a class=a2a_button_printfriendly></a></div></div><hr><div class=reward-container><div><i class="fa-solid fa-mug-hot"></i>请我喝杯咖啡吧 ヾ(^▽^*)))</div><button>
+赞赏</button><div class=post-reward><div class=post-reward-item><img src=/imgs/img-lazy-loading.gif data-src=/imgs/alipay.jpeg alt="Don't Panic - 支付宝">
+<span>支付宝</span></div><div class=post-reward-item><img src=/imgs/img-lazy-loading.gif data-src=/imgs/wechatpay.jpeg alt="Don't Panic - 微信">
+<span>微信</span></div></div></div><div class=post-nav><div class="post-nav-next post-nav-item"></div><div class="post-nav-prev post-nav-item"><a href=/blog/openwrt-access-by-ipv6/ rel=prev title=Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问>Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问
+<i class="fa fa-chevron-right"></i></a></div></div></footer></article></div><div id=comments class=post-comments><div class=comment-head><div class=comment-headline><i class="fas fa-comments fa-fw"></i>
+<span>评论交流</span></div></div><div class=comment-wrap><div><div class=comment-loading><i class="fa fa-sync fa-spin"></i></div><div class=giscus-container></div></div></div></div></div></main><footer class=footer><div class=footer-inner><div class=copyright>&copy;
+<span itemprop=copyrightYear>2014 - 2025
+</span><span class=with-love><i class="fa fa-heart"></i>
+</span><span class=author itemprop=copyrightHolder>Don't Panic</span></div><div class=powered-by>由 <a href=https://gohugo.io title=0.141.0 target=_blank>Hugo</a> & <a href=https://github.com/hugo-next/hugo-theme-next title=4.7.2 target=_blank>Hugo NexT.Gemini</a> 强力驱动</div></div></footer><script class=next-config data-name=page type=application/json>{"clipboard":{"js":{"file":"dist/clipboard.min.js","name":"clipboard","version":"2.0.11"}},"comments":true,"expired":false,"isHome":false,"isPage":true,"path":"openwrt-access-by-https","permalink":"/blog/openwrt-access-by-https/","title":"Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问","toc":true,"waline":{"commentcnt":{"alias":"@waline/client","alias_name":"waline","file":"dist/comment.js","name":"comment","version":"2.15.8"}}}</script><script type=text/javascript src=/js/3rd/animejs/3.2.2/anime.min.js crossorigin=anonymous defer></script><script type=text/javascript src=/js/3rd/viewerjs/1.11.6/viewer.min.js crossorigin=anonymous defer></script><script class=next-config data-name=main type=application/json>{"bookmark":{"color":"#222","enable":false,"save":"manual"},"copybtn":true,"darkmode":false,"giscus":{"cfg":{"category":"Announcements","categoryid":"DIC_kwDOBi9U784Cnicc","emit":false,"inputposition":"top","mapping":"pathname","reactions":false,"repo":"weicao0/weicao0.github.io","repoid":"MDEwOlJlcG9zaXRvcnkxMDM3NjUyMzE=","theme":"preferred_color_scheme"},"js":"https://giscus.app/client.js"},"hostname":"/","i18n":{"ds_day":" 天前","ds_days":" 天 ","ds_hour":" 小时前","ds_hours":" 小时 ","ds_just":"刚刚","ds_min":" 分钟前","ds_mins":" 分钟","ds_month":" 个月前","ds_years":" 年 ","empty":"没有找到任何搜索结果：${query}","hits":"找到 ${hits} 个搜索结果","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","placeholder":"搜索..."},"isMultiLang":false,"lang":"zh-CN","lazyload":false,"localSearch":{"enable":true,"limit":1e3,"path":"/searchindexes.xml","preload":false,"topnperarticle":-1,"trigger":"auto","unescape":false},"motion":{"async":true,"enable":true,"transition":{"collheader":"slideInRight","postblock":"fadeIn","postbody":"fadeInDown","postheader":"fadeInDown","sidebar":"fadeInUp"}},"postmeta":{"comments":{"enable":true,"plugin":"waline"},"views":{"enable":true,"plugin":"busuanzi"}},"root":"/","scheme":"Gemini","share":{"addtoany":{"js":"https://static.addtoany.com/menu/page.js","locale":"zh-CN","num":8},"enable":true},"sidebar":{"display":"post","offset":12,"padding":18,"position":"left","width":256},"vendor":{"plugins":"local","router":{"name":"local","type":"modern","url":"/js/3rd"}},"version":"4.7.2","waline":{"cfg":{"emoji":false,"imguploader":false,"placeholder":"请文明发言哟 ヾ(≧▽≦*)o","reaction":true,"reactiontext":["点赞","踩一下","得意","不屑","尴尬","睡觉"],"reactiontitle":"你认为这篇文章怎么样？","requiredmeta":["nick","mail"],"serverurl":null,"sofa":"快来发表你的意见吧 (≧∀≦)ゞ","wordlimit":200},"css":{"alias":"@waline/client","file":"dist/waline.css","name":"waline","version":"2.15.8"},"js":{"alias":"@waline/client","file":"dist/waline.js","name":"waline","version":"2.15.8"}}}</script><script type=text/javascript src="/js/main.min.js?=1744854006" defer></script><script type=text/javascript src="/js/clipboard.min.js?=1744854007" defer></script></body></html>

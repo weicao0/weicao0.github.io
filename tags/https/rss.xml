@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Https on 心有所住</title><link>/tags/https/</link><description>Recent content in Https on 心有所住</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 16 Apr 2025 02:33:01 +0800</lastBuildDate><atom:link href="/tags/https/rss.xml" rel="self" type="application/rss+xml"/><item><title>Openwrt软路由配置（二）：使用Nginx支持内网服务通过HTTPS访问</title><link>/blog/openwrt-access-by-https/</link><pubDate>Fri, 11 Apr 2025 03:27:20 +0800</pubDate><guid>/blog/openwrt-access-by-https/</guid><description>&lt;p>在文章
+&lt;a href="https://weicao0.github.io/Openwrt-Access-By-IPv6/" title="Openwrt软路由配置（一）：使用家庭宽带支持IPv4&amp;#43;IPv6双栈访问" rel="noopener external nofollow noreferrer" target="_blank" class=" exturl">
+ Openwrt软路由配置（一）：使用家庭宽带支持IPv4+IPv6双栈访问
+ 
+ &lt;i class="fa fa-external-link-alt">&lt;/i>
+ 
+&lt;/a>的最后章节，提到当内网部署了多个http服务时，通过不同域名+固定端口进行访问会更加方便易用。同时在提供外部访问时，如果可以将本地 HTTP 服务自动转换为 HTTPS 服务，也可以大幅改善内网服务的安全性。
+这两个需求可以用Nginx反向代理来实现。&lt;/p></description></item></channel></rss>
